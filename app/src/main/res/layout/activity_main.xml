@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wearable.view.WatchViewStub xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/watch_view_stub"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_grey"
+    android:padding="@dimen/box_inset_layout_padding"
+    app:rectLayout="@layout/round"
+    app:roundLayout="@layout/rect"
+    tools:context=".MainActivity"
+    tools:deviceIds="wear">
+
+    <FrameLayout
+        android:id="@+id/frame"
+        android:layout_width="297dp"
+        android:layout_height="196dp"
+        android:padding="@dimen/inner_frame_layout_padding">
+
+        <Button
+            android:id="@+id/start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start" />
+
+        <TextView
+            android:id="@+id/heart"
+            android:layout_width="123dp"
+            android:layout_height="144dp" />
+
+        <TextView
+            android:id="@+id/step_count"
+            android:layout_width="212dp"
+            android:layout_height="224dp" />
+
+        <TextView
+            android:id="@+id/step_detect"
+            android:layout_width="334dp"
+            android:layout_height="333dp" />
+
+    </FrameLayout>
+</android.support.wearable.view.WatchViewStub>
