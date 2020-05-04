@@ -13,11 +13,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 import androidx.core.app.ActivityCompat;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
@@ -120,10 +122,27 @@ public class MainActivity extends Activity implements SensorEventListener {
                 }
                 else if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-                    String msg = "Detected at " + currentTimeStr() + "\n"+
+                    String msg = "Detected at " + TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "\n"+
                             "X" + " " + event.values[0] + "\n" + "Y" +" "+ event.values[1] +  "\n" + "Z" +" " + event.values[2];
                     mTextViewStepDetect.setText(msg);
                     Log.d(TAG, msg);
+
+                    String data = TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "," + event.values[0] + ',' + event.values[1]+','+ event.values[2]+  "\n";
+
+                    File file = new File(MainActivity.this.getFilesDir(), "text");
+                    if (!file.exists()) {
+                        file.mkdir();
+                    }
+                    try {
+                        File gpxfile = new File(file, "accelerometer.txt");
+                        FileWriter writer = new FileWriter(gpxfile, true);
+                        writer.append(data);
+                        writer.flush();
+                        writer.close();
+                        Log.d("data", data);
+                    } catch (Exception e) {
+                        Log.d("error", e.getMessage());
+                    }
                 }
                 else
                     Log.d(TAG, "Unknown sensor type");
