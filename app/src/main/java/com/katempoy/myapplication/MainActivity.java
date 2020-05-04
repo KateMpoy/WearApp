@@ -26,6 +26,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private TextView mTextViewStepDetect;
     private TextView mTextViewHeart;
     private Button mStart;
+    private Button mStop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,20 +45,26 @@ public class MainActivity extends Activity implements SensorEventListener {
                 mTextViewStepDetect = (TextView) stub.findViewById(R.id.step_detect);
                 mTextViewHeart = (TextView) stub.findViewById(R.id.heart);
                 mStart = (Button) stub.findViewById(R.id.start);
+                mStop = (Button) stub.findViewById(R.id.stop);
 
-                mStart.setOnClickListener(corkyListener);
-
-
+                mStart.setOnClickListener(clickButton);
+                mStop.setOnClickListener(clickButton2);
 
             }
         });
 
-
     }
 
-    private View.OnClickListener corkyListener = new View.OnClickListener() {
+    private View.OnClickListener clickButton = new View.OnClickListener() {
         public void onClick(View v) {
             getStepCount();
+
+        }
+    };
+
+    private View.OnClickListener clickButton2 = new View.OnClickListener() {
+        public void onClick(View v) {
+            stopCount();
 
         }
     };
@@ -72,6 +79,11 @@ public class MainActivity extends Activity implements SensorEventListener {
         //mSensorManager.registerListener(this, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
        // mSensorManager.registerListener(this, mStepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
         mSensorManager.registerListener(this, mStepDetectSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void stopCount() {
+        SensorManager mSensorManager = ((SensorManager)getSystemService(SENSOR_SERVICE));
+        mSensorManager.unregisterListener(this);
     }
 
     private String currentTimeStr() {
