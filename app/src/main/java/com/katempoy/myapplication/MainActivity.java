@@ -1,6 +1,7 @@
 package com.katempoy.myapplication;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -8,6 +9,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.view.View;
@@ -94,6 +96,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         return df.format(c.getTime());
     }
 
+    protected boolean isIdleMode(final Context context) {
+        final String packageName = context.getPackageName();
+        final PowerManager manager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        boolean isIgnoringOptimizations = manager.isIgnoringBatteryOptimizations(packageName);
+        return manager.isDeviceIdleMode() && !isIgnoringOptimizations;
+    }
+
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         Log.d(TAG, "onAccuracyChanged - accuracy: " + accuracy);
     }
@@ -140,8 +149,18 @@ public class MainActivity extends Activity implements SensorEventListener {
                         writer.flush();
                         writer.close();
                         Log.d("data", data);
+
+
                     } catch (Exception e) {
                         Log.d("error", e.getMessage());
+                    }
+
+                    if(isIdleMode(this)){
+                        Log.d("idle", "true");
+                        stopCount();
+                    }else{
+                        Log.d("idle", "false");
+                        getStepCount();
                     }
                 }
                 else
