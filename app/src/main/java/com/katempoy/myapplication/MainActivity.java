@@ -76,13 +76,18 @@ public class MainActivity extends Activity implements SensorEventListener {
     private void getStepCount() {
         SensorManager mSensorManager = ((SensorManager)getSystemService(SENSOR_SERVICE));
 
-       // Sensor mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
-        //Sensor mStepCountSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+       Sensor mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+        Sensor mStepCountSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         Sensor mStepDetectSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        //mSensorManager.registerListener(this, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
-       // mSensorManager.registerListener(this, mStepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mStepDetectSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        if(mHeartRateSensor !=null) {
+            mSensorManager.registerListener(this, mHeartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(mStepCountSensor !=null) {
+            mSensorManager.registerListener(this, mStepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(mStepDetectSensor !=null) {
+            mSensorManager.registerListener(this, mStepDetectSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     private void stopCount() {
@@ -124,14 +129,40 @@ public class MainActivity extends Activity implements SensorEventListener {
                     mTextViewHeart.setText(msg);
                     Log.d(TAG, msg);
                 }
-                else if (event.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-                    String msg = "Count: " + (int)event.values[0];
+                else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                    String msg = "GYROSCOPE:  at " + TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "\n"+
+                            "X" + " " + event.values[0] + "\n" + "Y" +" "+ event.values[1] +  "\n" + "Z" +" " + event.values[2];
                     mTextViewStepCount.setText(msg);
                     Log.d(TAG, msg);
+
+                    String data = TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "," + event.values[0] + ',' + event.values[1]+','+ event.values[2]+  "\n";
+
+                    File file = new File(MainActivity.this.getFilesDir(), "text");
+                    if (!file.exists()) {
+                        file.mkdir();
+                    }
+                    try {
+                        File gpxfile = new File(file, "gyroscope.txt");
+                        FileWriter writer = new FileWriter(gpxfile, true);
+                        writer.append(data);
+                        writer.flush();
+                        writer.close();
+
+                    } catch (Exception e) {
+                        Log.d("error", e.getMessage());
+                    }
+
+                    if(isIdleMode(this)){
+                        Log.d("idle", "true");
+                        stopCount();
+                    }else{
+                        Log.d("idle", "false");
+                        getStepCount();
+                    }
                 }
                 else if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-                    String msg = "Detected at " + TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "\n"+
+                    String msg = "ACC. at " + TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "\n"+
                             "X" + " " + event.values[0] + "\n" + "Y" +" "+ event.values[1] +  "\n" + "Z" +" " + event.values[2];
                     mTextViewStepDetect.setText(msg);
                     Log.d(TAG, msg);
@@ -148,7 +179,6 @@ public class MainActivity extends Activity implements SensorEventListener {
                         writer.append(data);
                         writer.flush();
                         writer.close();
-                        Log.d("data", data);
 
 
                     } catch (Exception e) {
