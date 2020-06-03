@@ -98,10 +98,10 @@ public class MainActivity extends Activity implements SensorEventListener {
         File[] files = directory.listFiles();
         for (int i = 0; i < files.length; i++)
         {
-            file = file + files[i].getName();
+            file = file + files[i].getName() + "\n";
         }
 
-        builder1.setMessage("Path:" + path + "\n" + "Files:" + file );
+        builder1.setMessage("Files:"+ "\n" + file );
         builder1.setCancelable(true);
 
         builder1.setPositiveButton(
@@ -123,7 +123,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         SensorManager mSensorManager = ((SensorManager) getSystemService(SENSOR_SERVICE));
 
 
-        Sensor mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+        Sensor mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_BEAT);
         Sensor mStepCountSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         Sensor mStepDetectSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
@@ -166,6 +166,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
 
         if (Build.VERSION.SDK_INT >= 26) {
+
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) !=
                     PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{
@@ -174,10 +175,46 @@ public class MainActivity extends Activity implements SensorEventListener {
                 return;
             } else {
 
-                if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
-                    String msg = "" + (int) event.values[0];
+                if (event.sensor.getType() == Sensor.TYPE_HEART_BEAT) {
+
+                    String msg = "HEART Rate:  at " + TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + ","+
+                            "X:" + " " + event.values[0] + "," + "Y:" + " " + event.values[1] + "," + "Z:" + " " + event.values[2];
                     mTextViewHeart.setText(msg);
                     Log.d(TAG, msg);
+
+                    String data = TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "," + event.values[0] + ',' + event.values[1] + ',' + event.values[2] + "\n";
+                    String data2 = currentTimeStr() +","+ "integer"+ "\n";
+
+                    File file = new File(MainActivity.this.getFilesDir(), "text");
+
+                    if (!file.exists()) {
+                        file.mkdir();
+                    }
+                    try {
+                        File gpxfile = new File(file, "heartRate.txt");
+
+                        FileWriter writer = new FileWriter(gpxfile, true);
+                        writer.append(data);
+                        writer.flush();
+                        writer.close();
+
+                        File metadata= new File(file, "metadata.txt");
+                        FileWriter writer2 = new FileWriter(metadata, true);
+                        writer2.append(data2);
+                        writer2.flush();
+                        writer2.close();
+
+                    } catch (Exception e) {
+                        Log.d("error", e.getMessage());
+                    }
+
+                    if (isIdleMode(this)) {
+                        Log.d("idle", "true");
+                        stopCount();
+                    } else {
+                        Log.d("idle", "false");
+                        getStepCount();
+                    }
                 } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
                     String msg = "GYROSCOPE:  at " + TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + ","+
                             "X:" + " " + event.values[0] + "," + "Y:" + " " + event.values[1] + "," + "Z:" + " " + event.values[2];
@@ -216,6 +253,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     Log.d(TAG, msg);
 
                     String data = TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "," + event.values[0] + ',' + event.values[1] + ',' + event.values[2] + "\n";
+                    String data2 = currentTimeStr() +","+ "m/s2"+"\n";
 
                     File file = new File(MainActivity.this.getFilesDir(), "text");
                     if (!file.exists()) {
@@ -227,6 +265,12 @@ public class MainActivity extends Activity implements SensorEventListener {
                         writer.append(data);
                         writer.flush();
                         writer.close();
+
+                        File metadata= new File(file, "metadata.txt");
+                        FileWriter writer2 = new FileWriter(metadata, true);
+                        writer2.append(data2);
+                        writer2.flush();
+                        writer2.close();
 
 
                     } catch (Exception e) {
@@ -243,12 +287,10 @@ public class MainActivity extends Activity implements SensorEventListener {
                 } else
                     Log.d(TAG, "Unknown sensor type");
 
-
-
-
             }
-        }
 
+
+        }
 
     }
 
