@@ -25,23 +25,33 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:layout_height="70dp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/step_detect"
-            android:layout_width="47dp"
-            android:layout_height="match_parent" />
+            android:layout_width="174dp"
+            android:layout_height="wrap_content"
+            android:textSize="10sp" />
 
         <TextView
             android:id="@+id/step_count"
-            android:layout_width="50dp"
-            android:layout_height="match_parent" />
+            android:layout_width="176dp"
+            android:layout_height="wrap_content"
+            android:textSize="10sp" />
 
         <TextView
             android:id="@+id/heart"
-            android:layout_width="57dp"
-            android:layout_height="match_parent" />
+            android:layout_width="176dp"
+            android:layout_height="wrap_content"
+            android:textSize="10sp" />
+
     </LinearLayout>
+
+    <Button
+        android:id="@+id/catalog"
+        android:layout_width="181dp"
+        android:layout_height="wrap_content"
+        android:text="Catalog" />
 
 </LinearLayout>
