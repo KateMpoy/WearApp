@@ -1,7 +1,6 @@
 package com.katempoy.myapplication;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -11,10 +10,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -30,7 +25,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity implements SensorEventListener {
