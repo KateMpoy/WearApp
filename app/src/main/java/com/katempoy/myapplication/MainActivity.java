@@ -1,6 +1,7 @@
 package com.katempoy.myapplication;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -10,6 +11,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -24,14 +27,12 @@ import androidx.core.app.ActivityCompat;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity implements SensorEventListener {
 
     private static final String TAG = "MainActivity";
-
-    private android.location.LocationListener locListener;
 
     private TextView mTextViewStepCount;
     private TextView mTextViewStepDetect;
@@ -65,6 +66,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 mStop.setOnClickListener(clickButton2);
                 mCatalog.setOnClickListener(clickButton3);
 
+
             }
         });
 
@@ -73,7 +75,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     private View.OnClickListener clickButton = new View.OnClickListener() {
         public void onClick(View v) {
-            getStepCount();
+            getCount();
         }
     };
 
@@ -117,11 +119,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-    private void getStepCount() {
+    private void getCount() {
 
 
         SensorManager mSensorManager = ((SensorManager) getSystemService(SENSOR_SERVICE));
-
 
         Sensor mHeartRateSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_HEART_BEAT);
         Sensor mStepCountSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -136,7 +137,32 @@ public class MainActivity extends Activity implements SensorEventListener {
         if (mStepDetectSensor != null) {
             mSensorManager.registerListener(this, mStepDetectSensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
+    }
 
+    public Location getLocation() {
+
+        final int REQUEST_CODE_ASK_PERMISSIONS = 123;
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        if (locationManager != null) {
+            if( ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED){
+                requestPermissions(new String[]{
+                                android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        REQUEST_CODE_ASK_PERMISSIONS);
+            }
+            Location lastKnownLocationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastKnownLocationGPS != null) {
+                return lastKnownLocationGPS;
+            } else {
+                Location loc =  locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+                System.out.println("1::"+loc);
+                System.out.println("2::"+loc.getLatitude());
+                return loc;
+            }
+        } else {
+            return null;
+        }
     }
 
     private void stopCount() {
@@ -145,12 +171,13 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
 
     private String currentTimeStr() {
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
-        return df.format(c.getTime());
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        Date date = new Date();
+        return formatter.format(date);
     }
 
     protected boolean isIdleMode(final Context context) {
+
         final String packageName = context.getPackageName();
         final PowerManager manager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         boolean isIgnoringOptimizations = manager.isIgnoringBatteryOptimizations(packageName);
@@ -164,13 +191,12 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         final int REQUEST_CODE_ASK_PERMISSIONS = 123;
 
-
         if (Build.VERSION.SDK_INT >= 26) {
 
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) !=
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.BODY_SENSORS) !=
                     PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{
-                                android.Manifest.permission.ACCESS_FINE_LOCATION},
+                                android.Manifest.permission.BODY_SENSORS},
                         REQUEST_CODE_ASK_PERMISSIONS);
                 return;
             } else {
@@ -213,7 +239,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                         stopCount();
                     } else {
                         Log.d("idle", "false");
-                        getStepCount();
+                        getCount();
                     }
                 } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
                     String msg = "GYROSCOPE:  at " + TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + ","+
@@ -222,6 +248,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     Log.d(TAG, msg);
 
                     String data = TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + "," + event.values[0] + ',' + event.values[1] + ',' + event.values[2] + "\n";
+                    String data2 = currentTimeStr() +","+ "rad/s"+"\n";
 
                     File file = new File(MainActivity.this.getFilesDir(), "text");
                     if (!file.exists()) {
@@ -234,6 +261,12 @@ public class MainActivity extends Activity implements SensorEventListener {
                         writer.flush();
                         writer.close();
 
+                        File metadata= new File(file, "metadata.txt");
+                        FileWriter writer2 = new FileWriter(metadata, true);
+                        writer2.append(data2);
+                        writer2.flush();
+                        writer2.close();
+
                     } catch (Exception e) {
                         Log.d("error", e.getMessage());
                     }
@@ -243,9 +276,10 @@ public class MainActivity extends Activity implements SensorEventListener {
                         stopCount();
                     } else {
                         Log.d("idle", "false");
-                        getStepCount();
+                        getCount();
                     }
                 } else if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+
 
                     String msg = "ACC. at " +  TimeUnit.SECONDS.convert(event.timestamp, TimeUnit.NANOSECONDS) + ","+
                             "X:" + " " + event.values[0] + "," + "Y:" + " " + event.values[1] + "," + "Z:" + " " + event.values[2];
@@ -282,7 +316,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                         stopCount();
                     } else {
                         Log.d("idle", "false");
-                        getStepCount();
+                        getCount();
                     }
                 } else
                     Log.d(TAG, "Unknown sensor type");
